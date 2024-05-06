@@ -1,0 +1,117 @@
+Problem: From the given list of input strings find the strings which are starting with the prefix string.
+
+Input string: "apple", "apron", "appleasd", "app", "were"
+PreFix string: "app"
+
+
+
+Explanation:
+
+If the preFixString is very short and we have to search only once, then we can directly go through the list and just compare whether the preFixString characters are matching with the initial characters from the input list.
+
+But if we have to search multiple preFixString, then this may not be a very efficient way as we need to search the complete list everytime we need to search a preFixString. This will be become worse if the preFixString and the input strings are very long.
+
+Time Complexity for every search:  O(n) * O(m)   n=number of input strings,  m=length of preFixString
+
+
+Solution:
+
+1. We can create a auxially data structure in the form of a Trie and store all the input strings in a way that searching is efficient.
+2. Every node of the Trie(except root) will store the list of strings matching the prefix characters found till now.
+3. As Trie stores data like a dictionary we just need to find the characters matching the preFixString and no need dont need to search the complete list.
+
+
+Time Complexity for every search:  O(n) + O(m)   n=number of result strings,  m=length of preFixString
+
+
+Code:
+
+struct TrieNode{
+    char c;
+    vector<string> preFixStrings;
+    map<char, TrieNode*> charList;
+};
+
+void insert(TrieNode* root, string word);
+vector<string>  search(TrieNode* root, string word);
+
+int main() {
+    
+    vector<string> inputStrings {"apple", "apron", "appleasd", "app", "were"};
+    string preFixString = "app";
+    
+    TrieNode* root = new TrieNode();
+    for(string s:inputStrings)
+        insert(root, s);
+    
+    vector<string>  result = search(root, preFixString);
+    
+    if(result.empty()) 
+        cout<<"No string Found!"<<endl;
+    
+    for(string s:result)
+        cout<<s<<endl;
+}
+
+void insert(TrieNode* currNode, string word) {
+    
+    //cout<<currNode<<endl;
+    string origString = word;
+    while(1){
+        char firstChar = word[0];
+        //cout<<firstChar;
+        
+        if(firstChar=='\0'){        // End of string    
+            break;
+        }
+           
+        TrieNode* nextNode = 0;
+        map<char, TrieNode*>& charList = currNode->charList;
+        if(charList.find(firstChar)!=charList.end())
+            nextNode = charList[firstChar];
+            
+        if(!nextNode){
+            //cout<<" new char\n";
+            nextNode = new TrieNode();
+            nextNode->c = firstChar;
+            charList.insert(make_pair(firstChar, nextNode));
+        }
+
+        currNode = nextNode;
+        vector<string> &preFixStrings = currNode->preFixStrings;
+        preFixStrings.push_back(origString);    //Adding input string to the current Trie node
+        
+        word.erase(0,1);
+        //cout<<word<<endl;
+    } 
+}
+
+vector<string> search(TrieNode* currNode, string word) {
+    
+    //cout<<currNode<<endl;
+    vector<string> preFixStrings;
+    while(1){   
+        char firstChar = word[0];
+        //cout<<firstChar;       
+        
+        if(firstChar=='\0'){
+            preFixStrings = currNode->preFixStrings;            
+            return preFixStrings;
+        }
+            
+        map<char, TrieNode*>& charList = currNode->charList;
+        TrieNode* nextNode = 0;
+        if(charList.find(firstChar)!=charList.end())
+            nextNode = charList[firstChar];
+            
+        if(!nextNode){
+            //cout<<" char not found\n";
+            return preFixStrings;   // Empty result
+        }
+        currNode = nextNode;
+        word.erase(0,1);
+        //cout<<word<<endl;
+    }  
+    return preFixStrings;   // Empty result
+}
+
